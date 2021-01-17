@@ -50,7 +50,12 @@ admin_user = os.getenv('SERVER_ADMIN_DISCORD_ID')
 
 log_in_out_timeout = 60  # Seconds
 
+
 def send_to_discord(msg):
+    if start_time - time.time() < 10:
+        # Wait for 10 seconds from program loading before we send anything to Discord
+        # This will prevent the program from spamming chats when first loaded and pygtail is catching up
+        return
     body = {
         'content': msg
     }
@@ -131,5 +136,6 @@ def read_log_file():
 if discord_url is None or admin_user is None:
     print("env vars not set correctly")
 else:
+    start_time = time.time()
     while True:
         read_log_file()
