@@ -44,7 +44,6 @@ last_log_out = {}
 
 logs_dir = '/logs/'
 
-logs_dir = 'E:/Documents/coding/minecraft_log_discord_webhook/logs/'
 discord_url = os.getenv('DISCORD_URL')
 admin_user = os.getenv('SERVER_ADMIN_DISCORD_ID')
 
