@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  minecraft_log_discord_webhook:
+    container_name: minecraft_log_discord_webhook
+    image: ryanlaycock/minecraft_log_discord_webhook:1.0.0
+    environment:
+      - DISCORD_URL=<discord webhook URL>
+      - SERVER_ADMIN_DISCORD_ID="<@userid>"
+    volumes:
+      - <mc_logs_dir>:/logs
