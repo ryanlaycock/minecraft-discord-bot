@@ -48,6 +48,7 @@ logs_dir = 'E:/Documents/coding/minecraft_log_discord_webhook/logs/latest.log'
 discord_url = os.getenv('DISCORD_URL')
 admin_user = os.getenv('SERVER_ADMIN_DISCORD_ID')
 
+log_in_out_timeout = 60  # Seconds
 
 def send_to_discord(msg):
     body = {
@@ -92,8 +93,8 @@ def joined_the_game(msg):
     if username is not None:
         last_log_out_time = last_log_out.get(username)
         if last_log_out_time is not None:
-            if (time.time() - last_log_out_time) < 30:
-                # Is user has been logged out for less than 30 seconds return without sending msg to discord
+            if (time.time() - last_log_out_time) < log_in_out_timeout:
+                # Is user has been logged out for less than log_in_out_timeout return without sending msg to discord
                 return
 
     # Couldn't get username from joined msg, so print anyway
