@@ -1,13 +1,10 @@
-from time import sleep
-
+import time
 from pygtail import Pygtail
 import sys
 import requests
 import os
 
 msg_for_discord = [
-    "joined the game",
-    "left the game",
     "made the advancement",
     # Death messages from https://minecraft.gamepedia.com/Death_messages
     "death",
@@ -43,7 +40,11 @@ server_info_msg = [
     "Starting the Minecraft server..."
 ]
 
+last_log_out = {}
+
 logs_dir = '/logs/latest.log'
+
+logs_dir = 'E:/Documents/coding/minecraft_log_discord_webhook/logs/latest.log'
 discord_url = os.getenv('DISCORD_URL')
 admin_user = os.getenv('SERVER_ADMIN_DISCORD_ID')
 
@@ -53,6 +54,7 @@ def send_to_discord(msg):
         'content': msg
     }
     req = requests.post(discord_url, data=body)
+    print("Sending: " + format(body))
 
 
 def is_msg_for_discord(msg):
@@ -72,14 +74,48 @@ def is_server_info_msg(msg):
 
 
 def format_log_msg(msg):
-    if len(msg) > 31:
-        return msg[31:]
+    if len(msg) > 33:
+        return msg[33:]
+
+
+# Set the last_log_out for username to the current time
+def left_the_game(msg):
+    username = get_username(msg)
+    if username is not None:
+        last_log_out[username] = time.time()
+    else:
+        print("could not get username from left game msg")
+
+
+def joined_the_game(msg):
+    username = get_username(msg)
+    if username is not None:
+        last_log_out_time = last_log_out.get(username)
+        if last_log_out_time is not None:
+            if (time.time() - last_log_out_time) < 30:
+                # Is user has been logged out for less than 30 seconds return without sending msg to discord
+                return
+
+    # Couldn't get username from joined msg, so print anyway
+    send_to_discord(format_log_msg(msg))
+
+
+def get_username(msg):
+    trimmed_msg = format_log_msg(msg)
+    words = trimmed_msg.split(" ")
+    return words[0]
 
 
 def read_log_file():
     try:
         for line in Pygtail(logs_dir):
             sys.stdout.write(line)
+
+            if "left the game" in line:
+                left_the_game(line)
+
+            if "joined the game" in line:
+                joined_the_game(line)
 
             if is_server_info_msg(line):
                 send_to_discord(admin_user + " " + format_log_msg(line))
@@ -88,7 +124,7 @@ def read_log_file():
                 send_to_discord(format_log_msg(line))
     except OSError as err:
         print(format(err) + "an error occurred. waiting 5 seconds before trying again")
-        sleep(5)
+        time.sleep(5)
 
 
 if discord_url is None or admin_user is None:
@@ -96,4 +132,3 @@ if discord_url is None or admin_user is None:
 else:
     while True:
         read_log_file()
-
