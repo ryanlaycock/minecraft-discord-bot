@@ -66,7 +66,10 @@ def send_to_discord(msg):
 
 def is_msg_for_discord(msg):
     if msg[0] == "<":
-        return False  # This is an in game message
+        # In game message. Only return True if the message contains "note" (so that messages can be purposefully sent
+        # to Discord
+        words = msg.split(" ")
+        return words[1] == "note"
     for for_discord in msg_for_discord:
         if for_discord in msg:
             return True
@@ -128,15 +131,12 @@ def read_log_file():
 
             if "left the game" in line:
                 left_the_game(line)
-
-            if "joined the game" in line:
+            elif "joined the game" in line:
                 joined_the_game(line)
-
-            if is_server_info_msg(line):
-                send_to_discord(admin_user + " " + format_log_msg(line))
-
-            if is_msg_for_discord(line):
+            elif is_msg_for_discord(format_log_msg(line)):
                 send_to_discord(format_log_msg(line))
+            elif is_server_info_msg(line):
+                send_to_discord(admin_user + " " + format_log_msg(line))
     except OSError as err:
         print(format(err) + "an error occurred. waiting 5 seconds before trying again")
         clear_offset()
